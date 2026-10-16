@@ -1,12 +1,19 @@
 # FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ 
 # Developed By UPDATEGADH TEAM
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = "django-inventory-college-project-change-in-production"
-DEBUG = True
-ALLOWED_HOSTS = []
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    "invman-txpd.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 INSTALLED_APPS = [
     "django.contrib.auth",
