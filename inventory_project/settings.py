@@ -10,7 +10,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    
+    "invman-txpd.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
@@ -58,8 +58,9 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
