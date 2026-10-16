@@ -1,26 +1,7 @@
 {% load static %}
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign in | StockFlow</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body class="login-page">
-  <main class="loginbox">
-    <a class="brand login-brand" href="{% url 'login' %}">STOCK<span>FLOW</span></a>
-    <p class="login-subtitle">Inventory Management System</p>
-    {% if messages %}{% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
-    <form method="post">
-      {% csrf_token %}
-      <label for="username">Username</label>
-      <input id="username" type="text" name="username" placeholder="Enter your username" autocomplete="username" required autofocus>
-      <label for="password">Password</label>
-      <input id="password" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
-      <button class="primary login-submit" type="submit">Sign in</button>
-    </form>
-    <p class="login-note">Sign in with your assigned account.</p>
-  </main>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · StockPilot</title><link rel="stylesheet" href="{% static 'css/app.css' %}"></head>
+<body class="login-page"><main class="login-layout"><section class="login-intro"><a class="brand login-brand" href="{% url 'login' %}"><span class="brand-icon">S</span><span>StockPilot</span></a><div class="intro-copy"><span class="kicker">INVENTORY, IN CONTROL</span><h1>Make better decisions with every item.</h1><p>Keep your products, purchases, sales and stock alerts connected in one practical workspace.</p></div><div class="intro-foot">A clear view of your business, from stock-in to stock-out.</div></section>
+<section class="login-side"><div class="login-card"><span class="login-icon">↗</span><h2>Welcome back</h2><p class="muted">Sign in to your inventory workspace.</p>
+{% if messages %}{% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+<form method="post">{% csrf_token %}<label for="username">Username</label><input id="username" name="username" autocomplete="username" placeholder="Enter your username" required autofocus><label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" placeholder="Enter your password" required><button class="button button-primary button-wide" type="submit">Sign in <span>→</span></button></form><p class="security-note">Secure access for your team.</p></div></section></main></body></html>

@@ -1,109 +1,133 @@
-from django.contrib.auth.models import User
+from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
-class Profile(models.Model):
-    ROLE_CHOICES = [("ADMIN", "Admin"), ("STAFF", "Staff")]
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="STAFF")
-
-    def __str__(self):
-        return f"{self.user.username} - {self.role}"
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        abstract = True
 
 
-class Category(models.Model):
+class Category(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
-
+    description = models.CharField(max_length=255, blank=True)
     def __str__(self):
         return self.name
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "categories"
 
 
-class Supplier(models.Model):
+class Supplier(TimeStampedModel):
     name = models.CharField(max_length=150)
-    phone = models.CharField(max_length=30)
+    phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
-
     def __str__(self):
         return self.name
+    class Meta:
+        ordering = ["name"]
 
 
-class Customer(models.Model):
+class Customer(TimeStampedModel):
     name = models.CharField(max_length=150)
-    phone = models.CharField(max_length=30)
+    phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
-
     def __str__(self):
         return self.name
+    class Meta:
+        ordering = ["name"]
 
 
-class Product(models.Model):
+class Product(TimeStampedModel):
     name = models.CharField(max_length=150)
     sku = models.CharField(max_length=50, unique=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
+    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
+    price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    cost_price = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
     stock = models.PositiveIntegerField(default=0)
     reorder_level = models.PositiveIntegerField(default=5)
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    is_active = models.BooleanField(default=True)
     def __str__(self):
         return f"{self.name} ({self.sku})"
+    @property
+    def stock_value(self):
+        return self.stock * self.cost_price
+    @property
+    def is_low_stock(self):
+        return self.stock <= self.reorder_level
+    class Meta:
+        ordering = ["name"]
 
 
-class Purchase(models.Model):
-    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField()
-    unit_cost = models.DecimalField(max_digits=12, decimal_places=2)
+class Purchase(TimeStampedModel):
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name="purchases")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="purchases")
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    unit_cost = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    reference = models.CharField(max_length=80, blank=True)
+    notes = models.CharField(max_length=255, blank=True)
     purchased_at = models.DateTimeField(auto_now_add=True)
-
     @property
     def total(self):
         return self.quantity * self.unit_cost
-
     def __str__(self):
-        return f"Purchase #{self.pk} - {self.product}"
+        return f"Purchase #{self.pk}: {self.product}"
 
 
-class Sale(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True, blank=True)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField()
-    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+class Sale(TimeStampedModel):
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True, blank=True, related_name="sales")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="sales")
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    reference = models.CharField(max_length=80, blank=True)
+    notes = models.CharField(max_length=255, blank=True)
     sold_at = models.DateTimeField(auto_now_add=True)
-
     @property
     def total(self):
         return self.quantity * self.unit_price
-
     def __str__(self):
-        return f"Sale #{self.pk} - {self.product}"
+        return f"Sale #{self.pk}: {self.product}"
 
 
-class Expense(models.Model):
+class Expense(TimeStampedModel):
     category = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
     spent_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
         return f"{self.category}: {self.amount}"
 
 
-class ReturnRecord(models.Model):
-    RETURN_TYPES = [("SALE", "Sales Return"), ("PURCHASE", "Purchase Return")]
+class ReturnRecord(TimeStampedModel):
+    RETURN_TYPES = [("SALE", "Customer return"), ("PURCHASE", "Return to supplier")]
+    STATUS_CHOICES = [("APPROVED", "Approved"), ("PENDING", "Pending")]
     return_type = models.CharField(max_length=10, choices=RETURN_TYPES)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField()
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="returns")
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     reason = models.CharField(max_length=255)
-    status = models.CharField(
-        max_length=20,
-        choices=[("APPROVED", "Approved"), ("PENDING", "Pending")],
-        default="APPROVED",
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="APPROVED")
     created_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
-        return f"{self.get_return_type_display()} #{self.pk} - {self.product}"
+        return f"{self.get_return_type_display()} #{self.pk}"
+
+
+class StockMovement(models.Model):
+    MOVEMENT_TYPES = [("OPENING", "Opening balance"), ("PURCHASE", "Purchase"), ("SALE", "Sale"),
+                      ("SALE_RETURN", "Customer return"), ("SUPPLIER_RETURN", "Supplier return"),
+                      ("ADJUSTMENT", "Manual adjustment")]
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="movements")
+    movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPES)
+    quantity_change = models.IntegerField()
+    balance_after = models.PositiveIntegerField()
+    note = models.CharField(max_length=255, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at"]
+    def __str__(self):
+        return f"{self.product.sku}: {self.quantity_change:+d}"

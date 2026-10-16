@@ -1,52 +1,24 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="toolbar">
-  <div class="toolbar-actions">
-    {% if kind == "products" %}<a class="primary" href="{% url 'product_add' %}">+ Add product</a>
-    {% elif kind == "categories" %}<a class="primary" href="{% url 'category_add' %}">+ Add category</a>
-    {% elif kind == "suppliers" %}<a class="primary" href="{% url 'supplier_add' %}">+ Add supplier</a>
-    {% elif kind == "customers" %}<a class="primary" href="{% url 'customer_add' %}">+ Add customer</a>
-    {% elif kind == "purchases" %}<a class="primary" href="{% url 'purchase_add' %}">+ Record purchase</a>
-    {% elif kind == "sales" %}<a class="primary" href="{% url 'sale_add' %}">+ Record sale</a>
-    {% elif kind == "expenses" %}<a class="primary" href="{% url 'expense_add' %}">+ Add expense</a>
-    {% elif kind == "returns" %}<a class="primary" href="{% url 'return_add' %}">+ Add return</a>{% endif %}
-  </div>
-  {% if kind in "products categories suppliers customers" %}
-    <form class="search" method="get">
-      <input name="q" value="{{ q }}" placeholder="Search {{ title|lower }}..." aria-label="Search {{ title|lower }}">
-      <button type="submit">Search</button>
-      {% if q %}<a class="secondary" href="?">Clear</a>{% endif %}
-    </form>
-  {% endif %}
-</div>
-<section class="panel">
-  <div class="table-wrap"><table>
-  {% if kind == "products" %}
-    <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Supplier</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>
-    {% for x in items %}<tr><td class="cell-strong">{{ x.name }}</td><td>{{ x.sku }}</td><td>{{ x.category|default:"—" }}</td><td>{{ x.supplier|default:"—" }}</td><td>₹ {{ x.price|floatformat:2 }}</td><td><span class="{% if x.stock <= x.reorder_level %}badge red{% else %}badge{% endif %}">{{ x.stock }}</span></td><td class="actions"><a class="table-action" href="{% url 'product_edit' x.pk %}">Edit</a>{% if request.user.is_superuser or request.user.is_staff %}<form method="post" action="{% url 'product_delete' x.pk %}" onsubmit="return confirm('Delete this product?');">{% csrf_token %}<button class="danger" type="submit">Delete</button></form>{% endif %}</td></tr>
-    {% empty %}<tr><td colspan="7" class="empty">No products found. Add a category first if needed, then add your first product.</td></tr>{% endfor %}
-  {% elif kind == "categories" %}
-    <thead><tr><th>Category</th><th>Actions</th></tr></thead><tbody>{% for x in items %}<tr><td class="cell-strong">{{ x.name }}</td><td>—</td></tr>{% empty %}<tr><td colspan="2" class="empty">No categories yet. Add a category before assigning one to a product.</td></tr>{% endfor %}
-  {% elif kind == "suppliers" %}
-    <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead><tbody>{% for x in items %}<tr><td class="cell-strong">{{ x.name }}</td><td>{{ x.phone }}</td><td>{{ x.email|default:"—" }}</td><td>{{ x.address|default:"—" }}</td></tr>{% empty %}<tr><td colspan="4" class="empty">No suppliers yet.</td></tr>{% endfor %}
-  {% elif kind == "customers" %}
-    <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead><tbody>{% for x in items %}<tr><td class="cell-strong">{{ x.name }}</td><td>{{ x.phone }}</td><td>{{ x.email|default:"—" }}</td><td>{{ x.address|default:"—" }}</td></tr>{% empty %}<tr><td colspan="4" class="empty">No customers yet.</td></tr>{% endfor %}
-  {% elif kind == "purchases" %}
-    <thead><tr><th>Date</th><th>Supplier</th><th>Product</th><th>Qty</th><th>Total</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.purchased_at|date:"d M Y H:i" }}</td><td>{{ x.supplier }}</td><td>{{ x.product.name }}</td><td>{{ x.quantity }}</td><td>₹ {{ x.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="5" class="empty">No purchases recorded.</td></tr>{% endfor %}
-  {% elif kind == "sales" %}
-    <thead><tr><th>Date</th><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.sold_at|date:"d M Y H:i" }}</td><td>{{ x.customer|default:"Walk-in" }}</td><td>{{ x.product.name }}</td><td>{{ x.quantity }}</td><td>₹ {{ x.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="5" class="empty">No sales recorded.</td></tr>{% endfor %}
-  {% elif kind == "expenses" %}
-    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.spent_at|date:"d M Y H:i" }}</td><td>{{ x.category }}</td><td>{{ x.description }}</td><td>₹ {{ x.amount|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="4" class="empty">No expenses recorded.</td></tr>{% endfor %}
-  {% elif kind == "returns" %}
-    <thead><tr><th>Date</th><th>Type</th><th>Product</th><th>Qty</th><th>Status</th><th>Reason</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.created_at|date:"d M Y H:i" }}</td><td>{{ x.get_return_type_display }}</td><td>{{ x.product.name }}</td><td>{{ x.quantity }}</td><td><span class="badge">{{ x.get_status_display }}</span></td><td>{{ x.reason }}</td></tr>{% empty %}<tr><td colspan="6" class="empty">No returns recorded.</td></tr>{% endfor %}
-  {% endif %}
-  </tbody></table></div>
-  {% if page_obj and page_obj.paginator.num_pages > 1 %}
-    <div class="pagination">
-      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-      <div>{% if page_obj.has_previous %}<a class="secondary" href="?q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
-      {% if page_obj.has_next %}<a class="secondary" href="?q={{ q|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div>
-    </div>
-  {% endif %}
-</section>
-{% endblock %}
+{% extends "base.html" %}{% block content %}
+<div class="list-toolbar"><div><p class="muted">Manage and review your {{ title|lower }} records.</p></div><div class="toolbar-actions">
+{% if kind == "products" %}<a class="button button-light" href="{% url 'export_products_csv' %}">⇩ Export CSV</a><a class="button button-primary" href="{% url 'product_add' %}">＋ Add product</a>
+{% elif kind == "categories" %}<a class="button button-primary" href="{% url 'category_add' %}">＋ Add category</a>
+{% elif kind == "suppliers" %}<a class="button button-primary" href="{% url 'supplier_add' %}">＋ Add supplier</a>
+{% elif kind == "customers" %}<a class="button button-primary" href="{% url 'customer_add' %}">＋ Add customer</a>
+{% elif kind == "purchases" %}<a class="button button-primary" href="{% url 'purchase_add' %}">＋ Record purchase</a>
+{% elif kind == "sales" %}<a class="button button-primary" href="{% url 'sale_add' %}">＋ Record sale</a>
+{% elif kind == "expenses" %}<a class="button button-primary" href="{% url 'expense_add' %}">＋ Add expense</a>
+{% elif kind == "returns" %}<a class="button button-primary" href="{% url 'return_add' %}">＋ Record return</a>{% endif %}
+</div></div>
+{% if kind in "products categories suppliers customers" %}<form class="search-bar" method="get"><span>⌕</span><input name="q" value="{{ q }}" placeholder="Search {{ title|lower }}..." aria-label="Search {{ title|lower }}"><button type="submit">Search</button>{% if q %}<a href="?">Clear</a>{% endif %}</form>{% endif %}
+<section class="panel table-panel"><div class="table-wrap"><table>
+{% if kind == "products" %}<thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Supplier</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>{% for x in items %}<tr><td><b>{{ x.name }}</b></td><td>{{ x.sku }}</td><td>{{ x.category|default:"—" }}</td><td>{{ x.supplier|default:"—" }}</td><td>₹{{ x.price|floatformat:2 }}</td><td><span class="pill {% if x.is_low_stock %}pill-danger{% else %}pill-success{% endif %}">{{ x.stock }}</span></td><td class="actions"><a class="text-link" href="{% url 'product_edit' x.pk %}">Edit</a>{% if request.user.is_staff or request.user.is_superuser %}<form method="post" action="{% url 'product_delete' x.pk %}" onsubmit="return confirm('Archive this product? Transaction history will be preserved.');">{% csrf_token %}<button class="tiny-danger" type="submit">Archive</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="7" class="empty-state"><b>No products found</b><small>Add a category and then create your first product.</small></td></tr>{% endfor %}
+{% elif kind == "categories" %}<thead><tr><th>Category</th><th>Description</th><th>Created</th><th>Actions</th></tr></thead><tbody>{% for x in items %}<tr><td><b>{{ x.name }}</b></td><td>{{ x.description|default:"—" }}</td><td>{{ x.created_at|date:"d M Y" }}</td><td><a class="text-link" href="{% url 'category_edit' x.pk %}">Edit</a></td></tr>{% empty %}<tr><td colspan="4" class="empty-state"><b>No categories yet</b><small>Add a category before creating products.</small></td></tr>{% endfor %}
+{% elif kind == "suppliers" %}<thead><tr><th>Supplier</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead><tbody>{% for x in items %}<tr><td><b>{{ x.name }}</b></td><td>{{ x.phone|default:"—" }}</td><td>{{ x.email|default:"—" }}</td><td>{{ x.address|default:"—" }}</td></tr>{% empty %}<tr><td colspan="4" class="empty-state">No suppliers yet.</td></tr>{% endfor %}
+{% elif kind == "customers" %}<thead><tr><th>Customer</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead><tbody>{% for x in items %}<tr><td><b>{{ x.name }}</b></td><td>{{ x.phone|default:"—" }}</td><td>{{ x.email|default:"—" }}</td><td>{{ x.address|default:"—" }}</td></tr>{% empty %}<tr><td colspan="4" class="empty-state">No customers yet.</td></tr>{% endfor %}
+{% elif kind == "purchases" %}<thead><tr><th>Date</th><th>Supplier</th><th>Product</th><th>Quantity</th><th>Unit cost</th><th>Total</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.purchased_at|date:"d M Y H:i" }}</td><td>{{ x.supplier }}</td><td>{{ x.product.name }}</td><td>{{ x.quantity }}</td><td>₹{{ x.unit_cost }}</td><td>₹{{ x.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">No purchases recorded.</td></tr>{% endfor %}
+{% elif kind == "sales" %}<thead><tr><th>Date</th><th>Customer</th><th>Product</th><th>Quantity</th><th>Unit price</th><th>Total</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.sold_at|date:"d M Y H:i" }}</td><td>{{ x.customer|default:"Walk-in" }}</td><td>{{ x.product.name }}</td><td>{{ x.quantity }}</td><td>₹{{ x.unit_price }}</td><td>₹{{ x.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">No sales recorded.</td></tr>{% endfor %}
+{% elif kind == "expenses" %}<thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.spent_at|date:"d M Y H:i" }}</td><td>{{ x.category }}</td><td>{{ x.description }}</td><td>₹{{ x.amount|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="4" class="empty-state">No expenses recorded.</td></tr>{% endfor %}
+{% elif kind == "returns" %}<thead><tr><th>Date</th><th>Type</th><th>Product</th><th>Quantity</th><th>Status</th><th>Reason</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.created_at|date:"d M Y H:i" }}</td><td>{{ x.get_return_type_display }}</td><td>{{ x.product.name }}</td><td>{{ x.quantity }}</td><td><span class="pill">{{ x.get_status_display }}</span></td><td>{{ x.reason }}</td></tr>{% empty %}<tr><td colspan="6" class="empty-state">No returns recorded.</td></tr>{% endfor %}{% endif %}
+</tbody></table></div>
+{% if page_obj and page_obj.paginator.num_pages > 1 %}<div class="pagination"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="button button-light" href="?q={{ q|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="button button-light" href="?q={{ q|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></div>{% endif %}
+</section>{% endblock %}

@@ -1,39 +1,18 @@
-{% extends "base.html" %}
-{% block content %}
-<section class="hero">
-  <div><span>OVERVIEW</span><h2>Know your stock. Run your business.</h2><p>Track products, purchases, sales and low-stock items in one workspace.</p></div>
-  <a class="primary" href="{% url 'product_add' %}">+ Add product</a>
+{% extends "base.html" %}{% block content %}
+<section class="welcome-row"><div><span class="kicker">YOUR BUSINESS AT A GLANCE</span><h1>Good to see you, {{ request.user.username }}.</h1><p class="muted">Here’s what’s happening across your inventory today.</p></div><a class="button button-primary" href="{% url 'product_add' %}">＋ Add product</a></section>
+<section class="stat-grid">
+<article class="stat-card"><div class="stat-top"><span>Total products</span><span class="stat-icon purple">▣</span></div><strong>{{ products_count }}</strong><small>Active items in catalogue</small></article>
+<article class="stat-card"><div class="stat-top"><span>Sales value</span><span class="stat-icon green">↗</span></div><strong>₹{{ revenue|floatformat:2 }}</strong><small>Recorded sales total</small></article>
+<article class="stat-card"><div class="stat-top"><span>Purchases</span><span class="stat-icon blue">↓</span></div><strong>₹{{ purchase_value|floatformat:2 }}</strong><small>Recorded purchase total</small></article>
+<article class="stat-card"><div class="stat-top"><span>Low stock</span><span class="stat-icon orange">!</span></div><strong>{{ low_stock }}</strong><small>At or below reorder level</small></article>
 </section>
-<div class="cards">
-  <article class="card"><small>Total products</small><strong>{{ products_count }}</strong><span class="card-foot">Items in catalogue</span></article>
-  <article class="card"><small>Suppliers</small><strong>{{ suppliers_count }}</strong><span class="card-foot">Supply partners</span></article>
-  <article class="card"><small>Customers</small><strong>{{ customers_count }}</strong><span class="card-foot">Customer records</span></article>
-  <article class="card warn"><small>Low stock</small><strong>{{ low_stock }}</strong><span class="card-foot">At or below reorder level</span></article>
-</div>
-<div class="grid2">
-  <section class="panel">
-    <div class="panelhead"><h3>Business summary</h3></div>
-    <div class="metrics">
-      <div><span>Units purchased</span><b>{{ purchase_qty }}</b></div>
-      <div><span>Units sold</span><b>{{ sales_qty }}</b></div>
-      <div><span>Sales value</span><b>₹ {{ revenue|floatformat:2 }}</b></div>
-      <div><span>Expenses</span><b>₹ {{ expenses|floatformat:2 }}</b></div>
-    </div>
-  </section>
-  <section class="panel">
-    <div class="panelhead"><h3>Recent sales</h3><a href="{% url 'sales' %}">View all</a></div>
-    <div class="table-wrap"><table><thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead><tbody>
-    {% for sale in recent_sales %}<tr><td>{{ sale.product.name }}</td><td>{{ sale.quantity }}</td><td>₹ {{ sale.total|floatformat:2 }}</td></tr>
-    {% empty %}<tr><td colspan="3" class="empty">No sales recorded yet.</td></tr>{% endfor %}
-    </tbody></table></div>
-  </section>
-</div>
-<section class="panel section-gap">
-  <div class="panelhead"><h3>Stock that needs attention</h3><a href="{% url 'products' %}">All products</a></div>
-  <div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Available</th><th>Reorder at</th><th>Status</th></tr></thead><tbody>
-  {% for product in low_stock_products %}
-    <tr><td>{{ product.name }}</td><td>{{ product.sku }}</td><td>{{ product.stock }}</td><td>{{ product.reorder_level }}</td><td><span class="badge red">Low stock</span></td></tr>
-  {% empty %}<tr><td colspan="5" class="empty">All products are above their reorder levels.</td></tr>{% endfor %}
-  </tbody></table></div>
-</section>
+<section class="content-grid">
+<div class="panel"><div class="panel-heading"><div><h2>Stock needing attention</h2><p class="muted">Restock before you run out.</p></div><a class="text-link" href="{% url 'products' %}">All products →</a></div>
+<div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>In stock</th><th>Reorder at</th><th>Status</th></tr></thead><tbody>{% for p in low_stock_products %}<tr><td><b>{{ p.name }}</b></td><td>{{ p.sku }}</td><td>{{ p.stock }}</td><td>{{ p.reorder_level }}</td><td><span class="pill pill-danger">Low stock</span></td></tr>{% empty %}<tr><td colspan="5" class="empty-state"><span>✓</span><b>Stock looks good</b><small>No products currently need restocking.</small></td></tr>{% endfor %}</tbody></table></div></div>
+<div class="panel quick-panel"><div class="panel-heading"><div><h2>Quick actions</h2><p class="muted">Common tasks, one click away.</p></div></div>
+<a class="quick-link" href="{% url 'product_add' %}"><span class="quick-icon purple">＋</span><span><b>Add a product</b><small>Create an item and set its stock.</small></span><span class="arrow">→</span></a>
+<a class="quick-link" href="{% url 'purchase_add' %}"><span class="quick-icon blue">↓</span><span><b>Record a purchase</b><small>Increase stock from a supplier.</small></span><span class="arrow">→</span></a>
+<a class="quick-link" href="{% url 'sale_add' %}"><span class="quick-icon green">↑</span><span><b>Record a sale</b><small>Reduce stock and record revenue.</small></span><span class="arrow">→</span></a>
+<a class="quick-link" href="{% url 'export_products_csv' %}"><span class="quick-icon orange">⇩</span><span><b>Export inventory</b><small>Download a CSV spreadsheet.</small></span><span class="arrow">→</span></a></div></section>
+<section class="panel recent-panel"><div class="panel-heading"><div><h2>Recent sales</h2><p class="muted">Latest recorded transactions.</p></div><a class="text-link" href="{% url 'sales' %}">View all →</a></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Customer</th><th>Quantity</th><th>Total</th><th>Date</th></tr></thead><tbody>{% for s in recent_sales %}<tr><td><b>{{ s.product.name }}</b></td><td>{{ s.customer|default:"Walk-in" }}</td><td>{{ s.quantity }}</td><td>₹{{ s.total|floatformat:2 }}</td><td>{{ s.sold_at|date:"d M Y" }}</td></tr>{% empty %}<tr><td colspan="5" class="muted">No sales recorded yet. Record a sale to see activity here.</td></tr>{% endfor %}</tbody></table></div></section>
 {% endblock %}

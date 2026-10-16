@@ -1,128 +1,76 @@
 from django import forms
-from .models import (
-    Category, Customer, Expense, Product, Purchase, ReturnRecord, Sale, Supplier,
-)
-
+from .models import Category, Customer, Expense, Product, Purchase, ReturnRecord, Sale, Supplier
 
 class StyledModelForm(forms.ModelForm):
-    """Apply consistent accessible CSS classes to all generated form controls."""
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            existing = field.widget.attrs.get("class", "")
-            field.widget.attrs["class"] = (existing + " input-control").strip()
-            field.widget.attrs.setdefault("autocomplete", "off")
-
+        for name, field in self.fields.items():
+            field.widget.attrs.setdefault("class", "input-control")
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs["class"] += " select-control"
 
 class ProductForm(StyledModelForm):
     class Meta:
         model = Product
-        fields = ["name", "sku", "category", "supplier", "price", "stock", "reorder_level"]
+        fields = ["name", "sku", "category", "supplier", "price", "cost_price", "stock", "reorder_level", "is_active"]
         widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "e.g. HP Laptop"}),
-            "sku": forms.TextInput(attrs={"placeholder": "e.g. LAP-001"}),
+            "name": forms.TextInput(attrs={"placeholder": "e.g. Wireless keyboard"}),
+            "sku": forms.TextInput(attrs={"placeholder": "e.g. KEY-001"}),
             "price": forms.NumberInput(attrs={"min": "0", "step": "0.01"}),
+            "cost_price": forms.NumberInput(attrs={"min": "0", "step": "0.01"}),
             "stock": forms.NumberInput(attrs={"min": "0", "step": "1"}),
             "reorder_level": forms.NumberInput(attrs={"min": "0", "step": "1"}),
         }
-
     def clean_sku(self):
         return self.cleaned_data["sku"].strip().upper()
-
-    def clean_price(self):
-        price = self.cleaned_data["price"]
-        if price < 0:
-            raise forms.ValidationError("Price cannot be negative.")
-        return price
-
 
 class CategoryForm(StyledModelForm):
     class Meta:
         model = Category
-        fields = ["name"]
-        widgets = {"name": forms.TextInput(attrs={"placeholder": "e.g. Electronics"})}
-
-    def clean_name(self):
-        return self.cleaned_data["name"].strip()
-
+        fields = ["name", "description"]
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "e.g. Electronics"}),
+                   "description": forms.TextInput(attrs={"placeholder": "Optional description"})}
 
 class SupplierForm(StyledModelForm):
     class Meta:
         model = Supplier
         fields = ["name", "phone", "email", "address"]
-        widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "Supplier or company name"}),
-            "phone": forms.TextInput(attrs={"placeholder": "Phone number"}),
-            "address": forms.Textarea(attrs={"rows": 3}),
-        }
-
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "Supplier company"}),
+                   "phone": forms.TextInput(attrs={"placeholder": "Phone"}),
+                   "address": forms.Textarea(attrs={"rows": 3})}
 
 class CustomerForm(StyledModelForm):
     class Meta:
         model = Customer
         fields = ["name", "phone", "email", "address"]
-        widgets = {
-            "name": forms.TextInput(attrs={"placeholder": "Customer name"}),
-            "phone": forms.TextInput(attrs={"placeholder": "Phone number"}),
-            "address": forms.Textarea(attrs={"rows": 3}),
-        }
-
+        widgets = {"name": forms.TextInput(attrs={"placeholder": "Customer name"}),
+                   "phone": forms.TextInput(attrs={"placeholder": "Phone"}),
+                   "address": forms.Textarea(attrs={"rows": 3})}
 
 class PurchaseForm(StyledModelForm):
     class Meta:
         model = Purchase
-        fields = ["supplier", "product", "quantity", "unit_cost"]
-        widgets = {
-            "quantity": forms.NumberInput(attrs={"min": "1", "step": "1"}),
-            "unit_cost": forms.NumberInput(attrs={"min": "0", "step": "0.01"}),
-        }
-
-    def clean_quantity(self):
-        quantity = self.cleaned_data["quantity"]
-        if quantity < 1:
-            raise forms.ValidationError("Quantity must be at least 1.")
-        return quantity
-
+        fields = ["supplier", "product", "quantity", "unit_cost", "reference", "notes"]
+        widgets = {"quantity": forms.NumberInput(attrs={"min": "1", "step": "1"}),
+                   "unit_cost": forms.NumberInput(attrs={"min": "0", "step": "0.01"})}
 
 class SaleForm(StyledModelForm):
     class Meta:
         model = Sale
-        fields = ["customer", "product", "quantity", "unit_price"]
-        widgets = {
-            "quantity": forms.NumberInput(attrs={"min": "1", "step": "1"}),
-            "unit_price": forms.NumberInput(attrs={"min": "0", "step": "0.01"}),
-        }
-
-    def clean_quantity(self):
-        quantity = self.cleaned_data["quantity"]
-        if quantity < 1:
-            raise forms.ValidationError("Quantity must be at least 1.")
-        return quantity
-
+        fields = ["customer", "product", "quantity", "unit_price", "reference", "notes"]
+        widgets = {"quantity": forms.NumberInput(attrs={"min": "1", "step": "1"}),
+                   "unit_price": forms.NumberInput(attrs={"min": "0", "step": "0.01"})}
 
 class ExpenseForm(StyledModelForm):
     class Meta:
         model = Expense
         fields = ["category", "description", "amount"]
-        widgets = {
-            "category": forms.TextInput(attrs={"placeholder": "e.g. Transport"}),
-            "description": forms.TextInput(attrs={"placeholder": "What was the expense for?"}),
-            "amount": forms.NumberInput(attrs={"min": "0", "step": "0.01"}),
-        }
-
+        widgets = {"category": forms.TextInput(attrs={"placeholder": "e.g. Transport"}),
+                   "description": forms.TextInput(attrs={"placeholder": "What was this expense for?"}),
+                   "amount": forms.NumberInput(attrs={"min": "0", "step": "0.01"})}
 
 class ReturnForm(StyledModelForm):
     class Meta:
         model = ReturnRecord
         fields = ["return_type", "product", "quantity", "reason", "status"]
-        widgets = {
-            "quantity": forms.NumberInput(attrs={"min": "1", "step": "1"}),
-            "reason": forms.TextInput(attrs={"placeholder": "Reason for return"}),
-        }
-
-    def clean_quantity(self):
-        quantity = self.cleaned_data["quantity"]
-        if quantity < 1:
-            raise forms.ValidationError("Quantity must be at least 1.")
-        return quantity
+        widgets = {"quantity": forms.NumberInput(attrs={"min": "1", "step": "1"})}

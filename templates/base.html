@@ -1,46 +1,30 @@
 {% load static %}
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title|default:"StockFlow | Inventory Management" }}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body class="app-shell">
-  <aside class="sidebar">
-    <a class="brand" href="{% url 'dashboard' %}">STOCK<span>FLOW</span></a>
-    <div class="tag">Inventory Workspace</div>
-    <nav class="nav-links" aria-label="Main navigation">
-      <a href="{% url 'dashboard' %}">Dashboard</a>
-      <a href="{% url 'products' %}">Products</a>
-      <a href="{% url 'categories' %}">Categories</a>
-      <a href="{% url 'suppliers' %}">Suppliers</a>
-      <a href="{% url 'customers' %}">Customers</a>
-      <a href="{% url 'purchases' %}">Purchases</a>
-      <a href="{% url 'sales' %}">Sales</a>
-      <a href="{% url 'expenses' %}">Expenses</a>
-      <a href="{% url 'returns' %}">Returns</a>
-    </nav>
-    <div class="sidebottom">
-      <span>{{ request.user.username }}</span>
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}<button class="link-button" type="submit">Logout</button>
-      </form>
-    </div>
-  </aside>
-  <main class="main-content">
-    <header class="page-header">
-      <div><span class="eyebrow">BUSINESS CONTROL</span><h1>{{ title|default:"Dashboard" }}</h1></div>
-      <div class="userchip">{{ request.user.username }}{% if request.user.is_superuser %} · Admin{% elif request.user.is_staff %} · Staff{% endif %}</div>
-    </header>
-    {% if messages %}
-      <div class="messages" aria-live="polite">
-        {% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}
-      </div>
-    {% endif %}
-    {% block content %}{% endblock %}
-    <footer class="site-footer">StockFlow · Inventory Workspace</footer>
-  </main>
-</body>
-</html>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title|default:"StockPilot" }} · StockPilot</title>
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head><body class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="{% url 'dashboard' %}"><span class="brand-icon">S</span><span>StockPilot</span></a>
+  <p class="side-caption">INVENTORY WORKSPACE</p>
+  <nav class="nav-links">
+    <a href="{% url 'dashboard' %}"><span>▦</span> Dashboard</a>
+    <a href="{% url 'products' %}"><span>▣</span> Products</a>
+    <a href="{% url 'categories' %}"><span>▤</span> Categories</a>
+    <a href="{% url 'suppliers' %}"><span>⇄</span> Suppliers</a>
+    <a href="{% url 'customers' %}"><span>♙</span> Customers</a>
+    <a href="{% url 'purchases' %}"><span>↓</span> Purchases</a>
+    <a href="{% url 'sales' %}"><span>↑</span> Sales</a>
+    <a href="{% url 'expenses' %}"><span>₹</span> Expenses</a>
+    <a href="{% url 'returns' %}"><span>↺</span> Returns</a>
+  </nav>
+  <div class="sidebar-bottom"><div class="avatar">{{ request.user.username|slice:":1"|upper }}</div><div class="account"><b>{{ request.user.username }}</b><small>{% if request.user.is_superuser %}Administrator{% elif request.user.is_staff %}Staff account{% else %}Team member{% endif %}</small></div>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout-button" title="Log out" aria-label="Log out">↗</button></form></div>
+</aside>
+<main class="main-content">
+  <header class="topbar"><div><span class="breadcrumb">WORKSPACE /</span><strong>{{ title|default:"Dashboard" }}</strong></div><div class="top-actions"><span class="status-dot"></span><span>Workspace ready</span></div></header>
+  {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% block content %}{% endblock %}
+  <footer class="footer"><span>StockPilot Inventory</span><span>Make every stock decision count.</span></footer>
+</main>
+</body></html>
