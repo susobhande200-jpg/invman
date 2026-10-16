@@ -1,20 +1,26 @@
-# FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ 
-# Developed By UPDATEGADH TEAM
-
+from django.contrib import admin
 from django.urls import path
 from inventory import views
 
 urlpatterns = [
+    path("django-admin/", admin.site.urls),
     path("", views.dashboard, name="dashboard"),
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
+
     path("products/", views.products, name="products"),
     path("products/add/", views.product_add, name="product_add"),
+    path("products/<int:pk>/edit/", views.product_edit, name="product_edit"),
     path("products/delete/<int:pk>/", views.product_delete, name="product_delete"),
+
+    path("categories/", views.categories, name="categories"),
+    path("categories/add/", views.category_add, name="category_add"),
+
     path("suppliers/", views.suppliers, name="suppliers"),
     path("suppliers/add/", views.supplier_add, name="supplier_add"),
     path("customers/", views.customers, name="customers"),
     path("customers/add/", views.customer_add, name="customer_add"),
+
     path("purchases/", views.purchases, name="purchases"),
     path("purchases/add/", views.purchase_add, name="purchase_add"),
     path("sales/", views.sales, name="sales"),

@@ -1,5 +1,4 @@
-# FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ 
-# Developed By UPDATEGADH TEAM
+#manage.py
 
 import os
 import sys

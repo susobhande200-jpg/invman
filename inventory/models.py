@@ -1,8 +1,6 @@
-# FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ 
-# Developed By UPDATEGADH TEAM
-
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+
 
 class Profile(models.Model):
     ROLE_CHOICES = [("ADMIN", "Admin"), ("STAFF", "Staff")]
@@ -12,23 +10,33 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.role}"
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    def __str__(self): return self.name
+
+    def __str__(self):
+        return self.name
+
 
 class Supplier(models.Model):
     name = models.CharField(max_length=150)
     phone = models.CharField(max_length=30)
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
-    def __str__(self): return self.name
+
+    def __str__(self):
+        return self.name
+
 
 class Customer(models.Model):
     name = models.CharField(max_length=150)
     phone = models.CharField(max_length=30)
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
-    def __str__(self): return self.name
+
+    def __str__(self):
+        return self.name
+
 
 class Product(models.Model):
     name = models.CharField(max_length=150)
@@ -40,7 +48,9 @@ class Product(models.Model):
     reorder_level = models.PositiveIntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self): return f"{self.name} ({self.sku})"
+    def __str__(self):
+        return f"{self.name} ({self.sku})"
+
 
 class Purchase(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
@@ -48,8 +58,14 @@ class Purchase(models.Model):
     quantity = models.PositiveIntegerField()
     unit_cost = models.DecimalField(max_digits=12, decimal_places=2)
     purchased_at = models.DateTimeField(auto_now_add=True)
+
     @property
-    def total(self): return self.quantity * self.unit_cost
+    def total(self):
+        return self.quantity * self.unit_cost
+
+    def __str__(self):
+        return f"Purchase #{self.pk} - {self.product}"
+
 
 class Sale(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True, blank=True)
@@ -57,8 +73,14 @@ class Sale(models.Model):
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
     sold_at = models.DateTimeField(auto_now_add=True)
+
     @property
-    def total(self): return self.quantity * self.unit_price
+    def total(self):
+        return self.quantity * self.unit_price
+
+    def __str__(self):
+        return f"Sale #{self.pk} - {self.product}"
+
 
 class Expense(models.Model):
     category = models.CharField(max_length=100)
@@ -66,11 +88,22 @@ class Expense(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     spent_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.category}: {self.amount}"
+
+
 class ReturnRecord(models.Model):
     RETURN_TYPES = [("SALE", "Sales Return"), ("PURCHASE", "Purchase Return")]
     return_type = models.CharField(max_length=10, choices=RETURN_TYPES)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
     reason = models.CharField(max_length=255)
-    status = models.CharField(max_length=20, choices=[("APPROVED","Approved"),("PENDING","Pending")], default="APPROVED")
+    status = models.CharField(
+        max_length=20,
+        choices=[("APPROVED", "Approved"), ("PENDING", "Pending")],
+        default="APPROVED",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_return_type_display()} #{self.pk} - {self.product}"

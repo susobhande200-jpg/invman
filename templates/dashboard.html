@@ -1,6 +1,39 @@
-{% extends "base.html" %}{% block content %}
-<div class="hero"><div><span>OVERVIEW</span><h2>Keep stock, sales and purchasing in one place.</h2><p>Monitor the core inventory workflow from a single workspace.</p></div><a class="primary" href="/products/add/">+ Add Product</a></div>
-<div class="cards"><div class="card"><small>Products</small><strong>{{ products_count }}</strong></div><div class="card"><small>Suppliers</small><strong>{{ suppliers_count }}</strong></div><div class="card"><small>Customers</small><strong>{{ customers_count }}</strong></div><div class="card warn"><small>Low Stock</small><strong>{{ low_stock }}</strong></div></div>
-<div class="grid2"><section class="panel"><div class="panelhead"><h3>Business Flow</h3></div><div class="metrics"><div><span>Units Purchased</span><b>{{ purchase_qty }}</b></div><div><span>Units Sold</span><b>{{ sales_qty }}</b></div><div><span>Sales Value</span><b>₹ {{ revenue|floatformat:2 }}</b></div><div><span>Expenses</span><b>₹ {{ expenses|floatformat:2 }}</b></div></div></section>
-<section class="panel"><div class="panelhead"><h3>Recent Sales</h3><a href="/sales/">View all</a></div><table><tr><th>Product</th><th>Qty</th><th>Total</th></tr>{% for s in recent_sales %}<tr><td>{{ s.product.name }}</td><td>{{ s.quantity }}</td><td>₹ {{ s.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3">No sales recorded.</td></tr>{% endfor %}</table></section></div>
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div><span>OVERVIEW</span><h2>Know your stock. Run your business.</h2><p>Track products, purchases, sales and low-stock items in one workspace.</p></div>
+  <a class="primary" href="{% url 'product_add' %}">+ Add product</a>
+</section>
+<div class="cards">
+  <article class="card"><small>Total products</small><strong>{{ products_count }}</strong><span class="card-foot">Items in catalogue</span></article>
+  <article class="card"><small>Suppliers</small><strong>{{ suppliers_count }}</strong><span class="card-foot">Supply partners</span></article>
+  <article class="card"><small>Customers</small><strong>{{ customers_count }}</strong><span class="card-foot">Customer records</span></article>
+  <article class="card warn"><small>Low stock</small><strong>{{ low_stock }}</strong><span class="card-foot">At or below reorder level</span></article>
+</div>
+<div class="grid2">
+  <section class="panel">
+    <div class="panelhead"><h3>Business summary</h3></div>
+    <div class="metrics">
+      <div><span>Units purchased</span><b>{{ purchase_qty }}</b></div>
+      <div><span>Units sold</span><b>{{ sales_qty }}</b></div>
+      <div><span>Sales value</span><b>₹ {{ revenue|floatformat:2 }}</b></div>
+      <div><span>Expenses</span><b>₹ {{ expenses|floatformat:2 }}</b></div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panelhead"><h3>Recent sales</h3><a href="{% url 'sales' %}">View all</a></div>
+    <div class="table-wrap"><table><thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead><tbody>
+    {% for sale in recent_sales %}<tr><td>{{ sale.product.name }}</td><td>{{ sale.quantity }}</td><td>₹ {{ sale.total|floatformat:2 }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="empty">No sales recorded yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+</div>
+<section class="panel section-gap">
+  <div class="panelhead"><h3>Stock that needs attention</h3><a href="{% url 'products' %}">All products</a></div>
+  <div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Available</th><th>Reorder at</th><th>Status</th></tr></thead><tbody>
+  {% for product in low_stock_products %}
+    <tr><td>{{ product.name }}</td><td>{{ product.sku }}</td><td>{{ product.stock }}</td><td>{{ product.reorder_level }}</td><td><span class="badge red">Low stock</span></td></tr>
+  {% empty %}<tr><td colspan="5" class="empty">All products are above their reorder levels.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
 {% endblock %}

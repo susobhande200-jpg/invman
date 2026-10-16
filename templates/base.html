@@ -1,9 +1,46 @@
-{% comment %} # FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ | Developed By UPDATEGADH TEAM {% endcomment %}
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ title|default:"Inventory Management System" }}</title><link rel="stylesheet" href="/static/css/style.css"></head>
-<body><aside><div class="brand">STOCK<span>FLOW</span></div><div class="tag">Inventory Workspace</div>
-<nav><a href="/">Dashboard</a><a href="/products/">Products</a><a href="/suppliers/">Suppliers</a><a href="/customers/">Customers</a><a href="/purchases/">Purchases</a><a href="/sales/">Sales</a><a href="/expenses/">Expenses</a><a href="/returns/">Returns</a></nav>
-<div class="sidebottom"><small>{{ request.user.username }}</small><a href="/logout/">Logout</a></div></aside>
-<main><header><div><span class="eyebrow">BUSINESS CONTROL</span><h1>{{ title|default:"Dashboard" }}</h1></div><div class="userchip">{{ request.user.username }} · {{ request.user.profile.role }}</div></header>
-{% if messages %}{% for message in messages %}<div class="alert">{{ message }}</div>{% endfor %}{% endif %}
-{% block content %}{% endblock %}</main></body></html>
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title|default:"StockFlow | Inventory Management" }}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'dashboard' %}">STOCK<span>FLOW</span></a>
+    <div class="tag">Inventory Workspace</div>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'products' %}">Products</a>
+      <a href="{% url 'categories' %}">Categories</a>
+      <a href="{% url 'suppliers' %}">Suppliers</a>
+      <a href="{% url 'customers' %}">Customers</a>
+      <a href="{% url 'purchases' %}">Purchases</a>
+      <a href="{% url 'sales' %}">Sales</a>
+      <a href="{% url 'expenses' %}">Expenses</a>
+      <a href="{% url 'returns' %}">Returns</a>
+    </nav>
+    <div class="sidebottom">
+      <span>{{ request.user.username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}<button class="link-button" type="submit">Logout</button>
+      </form>
+    </div>
+  </aside>
+  <main class="main-content">
+    <header class="page-header">
+      <div><span class="eyebrow">BUSINESS CONTROL</span><h1>{{ title|default:"Dashboard" }}</h1></div>
+      <div class="userchip">{{ request.user.username }}{% if request.user.is_superuser %} · Admin{% elif request.user.is_staff %} · Staff{% endif %}</div>
+    </header>
+    {% if messages %}
+      <div class="messages" aria-live="polite">
+        {% for message in messages %}<div class="alert {{ message.tags }}">{{ message }}</div>{% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+    <footer class="site-footer">StockFlow · Inventory Workspace</footer>
+  </main>
+</body>
+</html>
