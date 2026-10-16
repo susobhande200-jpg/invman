@@ -1,0 +1,5 @@
+{% comment %} # FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ | Developed By UPDATEGADH TEAM {% endcomment %}
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login</title><link rel="stylesheet" href="/static/css/style.css"></head>
+<body class="login"><section class="loginbox"><div class="brand">STOCK<span>FLOW</span></div><p>Inventory Management System</p>
+<form method="post">{% csrf_token %}<label>Username</label><input name="username" required><label>Password</label><input type="password" name="password" required><button>Sign In</button></form>
+{% if messages %}{% for message in messages %}<div class="alert">{{ message }}</div>{% endfor %}{% endif %}</section></body></html>

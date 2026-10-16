@@ -1,0 +1,9 @@
+{% comment %} # FOR MORE REAL TIME PROJECTS VISIT :- https://updategadh.com/ | Developed By UPDATEGADH TEAM {% endcomment %}
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ title|default:"Inventory Management System" }}</title><link rel="stylesheet" href="/static/css/style.css"></head>
+<body><aside><div class="brand">STOCK<span>FLOW</span></div><div class="tag">Inventory Workspace</div>
+<nav><a href="/">Dashboard</a><a href="/products/">Products</a><a href="/suppliers/">Suppliers</a><a href="/customers/">Customers</a><a href="/purchases/">Purchases</a><a href="/sales/">Sales</a><a href="/expenses/">Expenses</a><a href="/returns/">Returns</a></nav>
+<div class="sidebottom"><small>{{ request.user.username }}</small><a href="/logout/">Logout</a></div></aside>
+<main><header><div><span class="eyebrow">BUSINESS CONTROL</span><h1>{{ title|default:"Dashboard" }}</h1></div><div class="userchip">{{ request.user.username }} · {{ request.user.profile.role }}</div></header>
+{% if messages %}{% for message in messages %}<div class="alert">{{ message }}</div>{% endfor %}{% endif %}
+{% block content %}{% endblock %}</main></body></html>

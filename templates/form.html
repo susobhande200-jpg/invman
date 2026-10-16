@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel formpanel"><form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for field in form %}<label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}{% endfor %}<button class="primary">Save Record</button></form></section>{% endblock %}
